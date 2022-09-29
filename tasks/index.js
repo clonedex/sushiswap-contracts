@@ -6,7 +6,7 @@ const {
   },
   utils: { defaultAbiCoder },
 } = require("ethers");
-const { MINICHEF_ADDRESS } = require("@sushiswap/core-sdk");
+const { MINICHEF_ADDRESS } = require("@clonedex/core-sdk");
 
 const fs = require("fs");
 
@@ -472,43 +472,44 @@ task("deploy:complex-rewarder", "Deploy ComplexRewarder")
     }
   });
 
-// task("deploy:clone-rewarder", "Deploy CloneRewarder")
-// .addParam("rewardToken", "Reward Token")
-// .addParam("lpToken", "LP Token")
+ task("deploy:clone-rewarder", "Deploy CloneRewarder")
+ .addParam("rewardToken", "Reward Token")
+ .addParam("lpToken", "LP Token")
 // .addOptionalParam("rewardRate", "Reward Rate", 0)
-// .setAction(async function ({ rewardToken, lpToken, rewardRate }, { getChainId, deployments }, runSuper) {
-//   const { deployer, dev } = await getNamedAccounts();
-//   const { deploy } = deployments;
+ .setAction(async function ({ rewardToken, lpToken, rewardRate }, { getChainId, deployments }, runSuper) {
+   const { deployer, dev } = await getNamedAccounts();
+   const { deploy } = deployments;
 
-//   const chainId = await getChainId();
+   const chainId = await getChainId();
 
-//   let miniChefAddress;
+   let miniChefAddress;
 
-//   if (chainId === "31337") {
-//     miniChefAddress = (await deployments.get("MiniChefV2")).address;
-//   } else if (chainId in MINICHEF_ADDRESS) {
-//     miniChefAddress = MINICHEF_ADDRESS[chainId];
-//   } else {
-//     throw Error("No MINICHEF!");
-//   }
+   if (chainId === "31337") {
+     miniChefAddress = (await deployments.get("MiniChefV2")).address;
+   } else if (chainId in MINICHEF_ADDRESS) {
+     miniChefAddress = MINICHEF_ADDRESS[chainId]; // 0xbf7bc23CE0652F825e7Bc05917715351f649B613
+     miniChefAddress = '0xbf7bc23CE0652F825e7Bc05917715351f649B613'; // 0xbf7bc23CE0652F825e7Bc05917715351f649B613
+   } else {
+     throw Error("No MINICHEF!");
+   }
 
-//   const { address } = await deploy("CloneRewarderTime", {
-//     from: deployer,
-//     args: [miniChefAddress],
-//     log: true,
-//     deterministicDeployment: false,
-//   });
+   const { address } = await deploy("CloneRewarderTime", {
+     from: deployer,
+     args: [miniChefAddress],
+     log: true,
+     deterministicDeployment: false,
+   });
 
-//   console.log(`CloneRewarder deployed at ${address}`)
+   console.log(`CloneRewarder deployed at ${address}`)
 
-//   const cloneRewarder = await ethers.getContract("CloneRewarderTime");
+   const cloneRewarder = await ethers.getContract("CloneRewarderTime");
 
-//   const data = defaultAbiCoder.encode(['address', 'address', 'uint256', 'address'], [rewardToken, dev, rewardRate, lpToken])
+   const data = defaultAbiCoder.encode(['address', 'address', 'uint256', 'address'], [rewardToken, dev, 1, lpToken])
 
-//   await (await cloneRewarder.init(data)).wait()
+   await (await cloneRewarder.init(data)).wait()
 
-//   if ((await complexRewarder.owner()) !== dev) {
-//     console.log("Transfer ownership of CloneRewarderTime to dev");
-//     await (await cloneRewarder.transferOwnership(dev, true, false)).wait();
-//   }
-// });
+   if ((await cloneRewarder.owner()) !== dev) {
+     console.log("Transfer ownership of CloneRewarderTime to dev");
+     await (await cloneRewarder.transferOwnership(dev, true, false)).wait();
+   }
+ });
